@@ -13,13 +13,16 @@ using namespace std;
 
 int usage(char*);
 int parse_args(int, char**, int *, int *, int *, int *, int *, int *, int *, char*);
-int check_options(int, int, int, int, int, int, int, char*);
+int check_options(int, int, int, int, int, int, int, int, char*);
 
 int generate_data();
 int read_test_file(char*);
 
 int main(int argc, char** argv)
 {
+	int rank(0);
+	int size(1);
+	
 	int p = 0; // count openMP threads
 	int n = 0; // ceils count
 	int m = 0; // blocks count
@@ -59,7 +62,6 @@ int usage(char* prog_name)
 		-t filename\t\tinput file with grid\n", prog_name);
 	return 0;
 }
-
 
 int parse_args(int argc, char** argv, int *p, int *n, int *m, int *k, int *s, int *c, int *t, char* input_file)
 {
@@ -113,7 +115,7 @@ int parse_args(int argc, char** argv, int *p, int *n, int *m, int *k, int *s, in
 	return 0;
 }
 
-int check_options(int p, int n, int m, int k, int s, int c, int t, char* input_file)
+int check_options(int size, int p, int n, int m, int k, int s, int c, int t, char* input_file)
 {
 	double fractpart(0), intpart(0);
 	int i;
@@ -149,9 +151,40 @@ int check_options(int p, int n, int m, int k, int s, int c, int t, char* input_f
 			i++;
 		}
 		
+		printf("\n");
+		
 		return -1;
 	}
 	
+	if ((m % size) != 0)
+	{
+		printf("np - must devide m (np > 0)\n\tFor m = %d np must be in: ", m);
+		
+		i = 2;
+		while(i <= sqrt(size))
+		{
+			if(n % i == 0)
+			{
+				printf("%d ", i);
+				
+				if (i != (n / i))
+					printf("%d ", n / i);
+			}
+			i++;
+		}
+		printf("\n");
+		
+		return -1;
+	}
+	
+	if (p < 0)
+		printf("p must be a positive integer (p > 0)\n");
+	if (k < 0)
+		printf("k must be a positive integer (p > 0)\n");
+	if (s < 0)
+		printf("s must be a positive integer (p > 0)\n");
+	if (c < 0)
+		printf("c must be a positive integer (p > 0)\n");
 	
 	return 0;
 }
