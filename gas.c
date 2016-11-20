@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <math.h>
 
 #include <map>
@@ -12,7 +13,7 @@
 using namespace std;
 
 int usage(char*);
-int parse_args(int, char**, int *, int *, int *, int *, int *, int *, int *, char*);
+int parse_args(int, char**, int *, int *, int *, int *, int *, int *, int *, char**);
 int check_options(int, int, int, int, int, int, int, int, char*);
 
 int generate_data();
@@ -32,8 +33,8 @@ int main(int argc, char** argv)
 	int t = 0; // test mode - 1; computing - 0
 	char *test_file;
 	
-	if (parse_args(argc, argv, &p, &n, &m, &k, &s, &c, &t, test_file) < 0 || 
-		check_options(p, n, m, k, s, c, t, test_file) < 0)
+	if (parse_args(argc, argv, &p, &n, &m, &k, &s, &c, &t, &test_file) < 0 || 
+		check_options(size, p, n, m, k, s, c, t, test_file) < 0)
 	{
 		usage(argv[0]);
 		return -1;
@@ -45,6 +46,9 @@ int main(int argc, char** argv)
 		read_test_file(test_file);
 	else
 		generate_data();
+	
+	
+	delete test_file;
 	
 	return 0;
 }
@@ -63,7 +67,7 @@ int usage(char* prog_name)
 	return 0;
 }
 
-int parse_args(int argc, char** argv, int *p, int *n, int *m, int *k, int *s, int *c, int *t, char* input_file)
+int parse_args(int argc, char** argv, int *p, int *n, int *m, int *k, int *s, int *c, int *t, char** input_file)
 {
 	int opt;
 	unsigned int check(0);
@@ -98,7 +102,8 @@ int parse_args(int argc, char** argv, int *p, int *n, int *m, int *k, int *s, in
 				break;
 			case 't':
 				*t = 1;
-				input_file = optarg;
+				*input_file = new char[strlen(optarg)];
+				strcpy(*input_file, optarg);
 				break;
 		}
 	}
@@ -178,13 +183,31 @@ int check_options(int size, int p, int n, int m, int k, int s, int c, int t, cha
 	}
 	
 	if (p < 0)
+	{
 		printf("p must be a positive integer (p > 0)\n");
+		return -1;
+	}
 	if (k < 0)
-		printf("k must be a positive integer (p > 0)\n");
+	{
+		printf("k must be a positive integer (k > 0)\n");
+		return -1;
+	}
 	if (s < 0)
-		printf("s must be a positive integer (p > 0)\n");
+	{
+		printf("s must be a positive integer (s > 0)\n");
+		return -1;
+	}
 	if (c < 0)
-		printf("c must be a positive integer (p > 0)\n");
+	{
+		printf("c must be a positive integer (c > 0)\n");
+		return -1;
+	}
+	
+	if (t == 1 && access(input_file, F_OK) < 0)
+	{
+		printf("File %s doesn't exists\n", input_file);
+		return -1;
+	}
 	
 	return 0;
 }
